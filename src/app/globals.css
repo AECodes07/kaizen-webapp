@@ -1,0 +1,228 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  --color-orange-900: #7c2d12;
+  --color-cream: #050510;
+  --color-text: #f0e6db;
+}
+
+:root {
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-200: #fed7aa;
+  --orange-300: #fdba74;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-600: #ea580c;
+  --orange-700: #c2410c;
+  --orange-800: #9a3412;
+  --orange-900: #7c2d12;
+  --cream: #050510;
+  --text: #f0e6db;
+  --edge-haze: rgba(30, 64, 175, 0.45);
+  /* Deep royal blue haze for dark mode */
+}
+
+[data-theme="light"] {
+  --cream: #fffdfa;
+  --text: #1a0f05;
+  --edge-haze: rgba(147, 197, 253, 0.4);
+  /* Light blue haze */
+}
+
+[data-theme="high-contrast"] {
+  --orange-50: #000000;
+  --orange-100: #000000;
+  --orange-200: #000000;
+  --orange-300: #ff7f00;
+  --orange-400: #ff5500;
+  --orange-500: #ff0000;
+  --orange-600: #ff0000;
+  --orange-700: #cc0000;
+  --orange-800: #990000;
+  --orange-900: #660000;
+  --cream: #000000;
+  --text: #ffffff;
+  --edge-haze: rgba(220, 38, 38, 0.25);
+  /* Subtle red/orange haze */
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-merriweather), 'Merriweather', serif;
+  background: var(--cream);
+  color: var(--text);
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' style='font-size:24px;'><text y='20'>🧠</text></svg>") 12 12, auto;
+}
+
+@keyframes letter-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: scale(1.3);
+    opacity: 0.7;
+  }
+}
+
+@keyframes flash-strobe {
+  0% {
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 0.7;
+  }
+
+  16% {
+    opacity: 0.1;
+  }
+
+  24% {
+    opacity: 0.5;
+  }
+
+  35% {
+    opacity: 0.05;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+
+  70% {
+    opacity: 0.05;
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes title-letter-in {
+  50% {
+    transform: translateY(-6px) scale(1.08) rotateZ(2deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0) scale(1) rotateZ(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes rainbow-glow {
+  0% {
+    box-shadow: 0 4px 30px #ff0000;
+  }
+
+  14% {
+    box-shadow: 0 4px 30px #ff7f00;
+  }
+
+  28% {
+    box-shadow: 0 4px 30px #ffff00;
+  }
+
+  42% {
+    box-shadow: 0 4px 30px #00ff00;
+  }
+
+  57% {
+    box-shadow: 0 4px 30px #0000ff;
+  }
+
+  71% {
+    box-shadow: 0 4px 30px #4b0082;
+  }
+
+  85% {
+    box-shadow: 0 4px 30px #9400d3;
+  }
+
+  100% {
+    box-shadow: 0 4px 30px #ff0000;
+  }
+}
+
+@keyframes shine-sweep {
+  to {
+    left: 130%;
+  }
+}
+
+@keyframes ripple-out {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Custom component styles from original Kaizen */
+.loader-text {
+  font-size: clamp(3rem, 10vw, 7rem);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  line-height: normal;
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+}
+
+.loader-text span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(60px) rotateX(-90deg);
+  animation: letter-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.title {
+  font-size: clamp(3.5rem, 12vw, 8rem);
+  font-weight: 900;
+  font-family: var(--font-merriweather), 'Merriweather', serif;
+  letter-spacing: 0.02em;
+  user-select: none;
+  position: relative;
+}
+
+.title-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(40px) scale(0.5) rotateZ(-8deg);
+  animation: title-letter-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  background: linear-gradient(135deg, var(--orange-600) 0%, var(--orange-400) 50%, var(--orange-500) 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

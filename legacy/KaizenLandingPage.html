@@ -366,6 +366,34 @@
             letter-spacing: 0.06em;
             text-transform: uppercase;
         }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 24px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(240, 230, 219, 0.5);
+            z-index: 10;
+            font-family: 'Oak Sans', sans-serif;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+            opacity: 0;
+            animation: fade-in 1s ease forwards;
+            animation-delay: 2.5s;
+        }
+
+        .footer .heart {
+            color: var(--orange-500);
+            font-size: 0.95rem;
+        }
+
+        @keyframes fade-in {
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
@@ -388,6 +416,10 @@
         <button class="cta" id="ctaBtn">Harness your mind</button>
         <p class="tagline">Take the first step towards renewed self-awareness</p>
     </main>
+
+    <footer class="footer">
+        Made with <span class="heart">❤️</span> at the University of Michigan by Ethan Dhomnic
+    </footer>
 
     <script>
         /* ── Holographic Wormhole Canvas ──────────────────── */
