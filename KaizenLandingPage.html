@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kaizen — Unleash Your Mind</title>
+    <meta name="description"
+        content="Kaizen is an intelligent mind map that connects your memories, goals, feelings, and thoughts across every aspect of your life." />
+    <link href="https://fonts.cdnfonts.com/css/oak-sans" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap"
+        rel="stylesheet" />
+    <style>
+        /* ── Reset & Base ─────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --orange-50: #fff7ed;
+            --orange-100: #ffedd5;
+            --orange-200: #fed7aa;
+            --orange-300: #fdba74;
+            --orange-400: #fb923c;
+            --orange-500: #f97316;
+            --orange-600: #ea580c;
+            --orange-700: #c2410c;
+            --orange-800: #9a3412;
+            --orange-900: #7c2d12;
+            --cream: #050510;
+            --text: #f0e6db;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Merriweather', serif;
+            background: var(--cream);
+            color: var(--text);
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' style='font-size:24px;'><text y='20'>🧠</text></svg>") 12 12, auto;
+        }
+
+        /* ── Space Tunnel Canvas ──────────────────────────── */
+        #tunnelCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ── Loading screen ───────────────────────────────── */
+        .loader {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--orange-500) 0%, var(--orange-700) 100%);
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-text {
+            font-size: clamp(3rem, 10vw, 7rem);
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.04em;
+            overflow: hidden;
+        }
+
+        .loader-text span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(60px) rotateX(-90deg);
+            animation: letter-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes letter-in {
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        /* Loader glow pulse */
+        .loader::after {
+            content: '';
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+            animation: pulse-glow 2.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                transform: scale(0.8);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 0.7;
+            }
+        }
+
+        /* ── Flash / strobe overlay on load ────────────────── */
+        .flash-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.6), rgba(255, 255, 255, 0.9));
+            opacity: 0;
+            animation: flash-strobe 1.8s ease-out forwards;
+        }
+
+        @keyframes flash-strobe {
+            0% {
+                opacity: 0;
+            }
+
+            8% {
+                opacity: 0.7;
+            }
+
+            16% {
+                opacity: 0.1;
+            }
+
+            24% {
+                opacity: 0.5;
+            }
+
+            35% {
+                opacity: 0.05;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+
+            70% {
+                opacity: 0.05;
+            }
+
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        /* ── Title letter animation ───────────────────────── */
+        .title-letter {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(40px) scale(0.5) rotateZ(-8deg);
+            animation: title-letter-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            background: linear-gradient(135deg, var(--orange-600) 0%, var(--orange-400) 50%, var(--orange-500) 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes title-letter-in {
+            50% {
+                transform: translateY(-6px) scale(1.08) rotateZ(2deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(0) scale(1) rotateZ(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* ── Main content ─────────────────────────────────── */
+        .main {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2.5rem;
+            opacity: 0;
+            transition: opacity 1s ease 0.3s;
+        }
+
+        .main.visible {
+            opacity: 1;
+        }
+
+        /* Title */
+        .title {
+            font-size: clamp(3.5rem, 12vw, 8rem);
+            font-weight: 900;
+            font-family: 'Merriweather', serif;
+            letter-spacing: 0.02em;
+            user-select: none;
+            position: relative;
+        }
+
+        @keyframes gradient-shift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* Subtle glow behind title */
+        .title-glow {
+            position: absolute;
+            width: 500px;
+            height: 140px;
+            background: radial-gradient(ellipse, rgba(249, 115, 22, 0.25), transparent 70%);
+            filter: blur(40px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* CTA Button */
+        .cta {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 3rem;
+            font-family: 'Oak Sans', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: #050510;
+            border: none;
+            border-radius: 60px;
+            cursor: inherit;
+            background: #fff;
+            box-shadow:
+                0 4px 20px rgba(255, 255, 255, 0.25),
+                0 1px 3px rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform: translateY(0);
+        }
+
+        @keyframes rainbow-glow {
+            0% {
+                box-shadow: 0 4px 30px #ff0000;
+            }
+
+            14% {
+                box-shadow: 0 4px 30px #ff7f00;
+            }
+
+            28% {
+                box-shadow: 0 4px 30px #ffff00;
+            }
+
+            42% {
+                box-shadow: 0 4px 30px #00ff00;
+            }
+
+            57% {
+                box-shadow: 0 4px 30px #0000ff;
+            }
+
+            71% {
+                box-shadow: 0 4px 30px #4b0082;
+            }
+
+            85% {
+                box-shadow: 0 4px 30px #9400d3;
+            }
+
+            100% {
+                box-shadow: 0 4px 30px #ff0000;
+            }
+        }
+
+        .cta:hover {
+            transform: translateY(-3px);
+            animation: rainbow-glow 3s linear infinite;
+        }
+
+        .cta:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.4);
+            animation: none;
+        }
+
+        /* Shine sweep on hover */
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -75%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(120deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.25),
+                    transparent);
+            transition: none;
+            transform: skewX(-20deg);
+        }
+
+        .cta:hover::before {
+            animation: shine-sweep 0.7s ease forwards;
+        }
+
+        @keyframes shine-sweep {
+            to {
+                left: 130%;
+            }
+        }
+
+        /* Ripple on click */
+        .cta .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(0);
+            animation: ripple-out 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-out {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Tagline below button */
+        .tagline {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--orange-300);
+            opacity: 0.7;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Space tunnel background -->
+    <canvas id="tunnelCanvas"></canvas>
+
+    <!-- Loading screen -->
+    <div class="loader" id="loader">
+        <div class="loader-text" id="loaderText"></div>
+    </div>
+
+    <!-- Main landing content -->
+    <main class="main" id="main">
+        <div style="position:relative; display:flex; align-items:center; justify-content:center;">
+            <div class="title-glow"></div>
+            <h1 class="title" id="titleText"></h1>
+        </div>
+        <button class="cta" id="ctaBtn">Unleash your mind</button>
+        <p class="tagline">Map your memories · Goals · Feelings · Thoughts</p>
+    </main>
+
+    <script>
+        /* ── Holographic Wormhole Canvas ──────────────────── */
+        (function initWormhole() {
+            const canvas = document.getElementById('tunnelCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let W, H, cx, cy;
+
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+                cx = W / 2;
+                cy = H / 2;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            /* ── Holographic color palette ────────────────── */
+            // Returns an HSL color that cycles through holographic hues
+            function holoColor(offset, alpha) {
+                const hue = (offset * 360) % 360;
+                return `hsla(${hue}, 85%, 65%, ${alpha})`;
+            }
+
+            /* ── Streaks (wormhole particles) ─────────────── */
+            const STREAK_COUNT = 160;
+            const streaks = [];
+            for (let i = 0; i < STREAK_COUNT; i++) {
+                streaks.push(resetStreak({}, true));
+            }
+
+            function resetStreak(s, init) {
+                const angle = Math.random() * Math.PI * 2;
+                const spread = 0.15 + Math.random() * 0.85; // how far from center
+                s.angle = angle;
+                s.spread = spread;
+                s.z = init ? Math.random() * 4 + 0.5 : 4 + Math.random() * 1;
+                s.speed = 0.018 + Math.random() * 0.035;
+                s.hueOffset = Math.random(); // base hue position
+                s.hueShift = 0.0006 + Math.random() * 0.0016; // how fast hue cycles
+                s.width = 0.5 + Math.random() * 1.5;
+                s.trailLen = 6 + Math.random() * 10; // how many z-steps for trail
+                return s;
+            }
+
+            /* ── Soft ring pulses ─────────────────────────── */
+            const RING_COUNT = 12;
+            const rings = [];
+            for (let i = 0; i < RING_COUNT; i++) {
+                rings.push({
+                    z: (i / RING_COUNT) * 8 + 0.5,
+                    speed: 0.012 + Math.random() * 0.008,
+                    hueOffset: Math.random()
+                });
+            }
+
+            let time = 0;
+
+            /* ── Mouse Distance Tracking ──────────────────── */
+            let mouseDistFactor = 1;
+            let btnX = cx;
+            let btnY = cy;
+            const ctaBtn = document.getElementById('ctaBtn');
+
+            function updateBtnPos() {
+                if (!ctaBtn) return;
+                const rect = ctaBtn.getBoundingClientRect();
+                btnX = rect.left + rect.width / 2;
+                btnY = rect.top + rect.height / 2;
+            }
+            window.addEventListener('resize', updateBtnPos);
+            setTimeout(updateBtnPos, 100);
+
+            window.addEventListener('mousemove', (e) => {
+                const dx = e.clientX - btnX;
+                const dy = e.clientY - btnY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                // Ramp up speed when within 400px, max 6x speed
+                const proximity = Math.max(0, 1 - dist / 400);
+                mouseDistFactor = 1 + proximity * 5;
+            });
+
+            function drawFrame() {
+                time += 0.016;
+
+                // Darker trail fade for deeper space feel
+                ctx.fillStyle = 'rgba(5, 5, 16, 0.18)';
+                ctx.fillRect(0, 0, W, H);
+
+                const maxDim = Math.max(W, H);
+
+                /* ── Draw holographic streaks ───────────────── */
+                for (let i = 0; i < STREAK_COUNT; i++) {
+                    const s = streaks[i];
+                    s.z -= s.speed * mouseDistFactor;
+                    s.hueOffset += s.hueShift * mouseDistFactor;
+
+                    if (s.z <= 0.05) {
+                        resetStreak(s, false);
+                        continue;
+                    }
+
+                    // Current position (projected from center)
+                    const projScale = maxDim * 0.5;
+                    const sx = cx + Math.cos(s.angle) * (s.spread / s.z) * projScale;
+                    const sy = cy + Math.sin(s.angle) * (s.spread / s.z) * projScale;
+
+                    // Trail origin (further back in z)
+                    const tz = s.z + s.speed * s.trailLen;
+                    const tx = cx + Math.cos(s.angle) * (s.spread / tz) * projScale;
+                    const ty = cy + Math.sin(s.angle) * (s.spread / tz) * projScale;
+
+                    // Skip if offscreen
+                    if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) {
+                        resetStreak(s, false);
+                        continue;
+                    }
+
+                    const closeness = Math.min(1, (4 - s.z) / 3);
+                    const alpha = closeness * 0.45;
+                    const lineW = s.width * (1 / s.z) * 0.4;
+
+                    // Holographic gradient along the streak
+                    const grad = ctx.createLinearGradient(tx, ty, sx, sy);
+                    const h1 = s.hueOffset;
+                    const h2 = s.hueOffset + 0.15;
+                    const h3 = s.hueOffset + 0.3;
+                    grad.addColorStop(0, holoColor(h1, 0));
+                    grad.addColorStop(0.3, holoColor(h2, alpha * 0.6));
+                    grad.addColorStop(0.7, holoColor(h2, alpha));
+                    grad.addColorStop(1, holoColor(h3, alpha * 0.8));
+
+                    ctx.beginPath();
+                    ctx.moveTo(tx, ty);
+                    ctx.lineTo(sx, sy);
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = Math.max(0.3, lineW);
+                    ctx.stroke();
+
+                    // Bright tip dot
+                    if (closeness > 0.3) {
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, Math.max(0.4, lineW * 0.4), 0, Math.PI * 2);
+                        ctx.fillStyle = holoColor(h3, closeness * 0.7);
+                        ctx.fill();
+                    }
+                }
+
+                /* ── Draw soft holographic rings ────────────── */
+                for (let i = 0; i < RING_COUNT; i++) {
+                    const ring = rings[i];
+                    ring.z -= ring.speed;
+                    ring.hueOffset += 0.001;
+                    if (ring.z <= 0.3) ring.z += 8;
+
+                    const scale = 1 / ring.z;
+                    const r = maxDim * scale * 0.18;
+                    const alpha = Math.max(0, Math.min(0.12, 0.16 - ring.z * 0.015));
+
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                    ctx.strokeStyle = holoColor(ring.hueOffset, alpha);
+                    ctx.lineWidth = 0.6;
+                    ctx.stroke();
+                }
+
+                /* ── Deep vignette ──────────────────────────── */
+                const vignette = ctx.createRadialGradient(cx, cy, H * 0.1, cx, cy, H * 0.9);
+                vignette.addColorStop(0, 'rgba(5, 5, 16, 0)');
+                vignette.addColorStop(1, 'rgba(5, 5, 16, 0.7)');
+                ctx.fillStyle = vignette;
+                ctx.fillRect(0, 0, W, H);
+
+                /* ── Warm center glow ───────────────────────── */
+                const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, H * 0.3);
+                glow.addColorStop(0, 'rgba(249, 115, 22, 0.05)');
+                glow.addColorStop(0.6, 'rgba(200, 80, 180, 0.02)');
+                glow.addColorStop(1, 'rgba(5, 5, 16, 0)');
+                ctx.fillStyle = glow;
+                ctx.fillRect(0, 0, W, H);
+
+                requestAnimationFrame(drawFrame);
+            }
+
+            // Init
+            ctx.fillStyle = '#050510';
+            ctx.fillRect(0, 0, W, H);
+            requestAnimationFrame(drawFrame);
+        })();
+
+        /* ── Loader letter animation ──────────────────────── */
+        (function initLoader() {
+            const text = 'Kaizen';
+            const el = document.getElementById('loaderText');
+            text.split('').forEach((ch, i) => {
+                const span = document.createElement('span');
+                span.textContent = ch;
+                span.style.animationDelay = (0.12 * i) + 's';
+                el.appendChild(span);
+            });
+
+            // Wait for letter animation + a beat, then fade out loader
+            const totalLetterTime = 0.12 * text.length + 550 + 1200;
+            setTimeout(() => {
+                // Add flash overlay
+                const flash = document.createElement('div');
+                flash.className = 'flash-overlay';
+                document.body.appendChild(flash);
+                flash.addEventListener('animationend', () => flash.remove());
+
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('main').classList.add('visible');
+
+                // Animate title letters after main appears
+                const titleEl = document.getElementById('titleText');
+                const titleText = 'Kaizen';
+                titleText.split('').forEach((ch, i) => {
+                    const span = document.createElement('span');
+                    span.className = 'title-letter';
+                    span.textContent = ch;
+                    span.style.animationDelay = (0.12 * i + 0.3) + 's';
+                    titleEl.appendChild(span);
+                });
+            }, totalLetterTime);
+        })();
+
+        /* ── CTA ripple effect ────────────────────────────── */
+        document.getElementById('ctaBtn').addEventListener('click', function (e) {
+            const btn = this;
+            const rect = btn.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+            btn.appendChild(ripple);
+            ripple.addEventListener('animationend', () => ripple.remove());
+        });
+    </script>
+</body>
+
+</html>
