@@ -3,14 +3,40 @@
 import { useEffect, useState } from "react";
 
 export default function Hero({ show }: { show: boolean }) {
-    const [letters, setLetters] = useState<string[]>([]);
-    const titleText = "Kaizen";
+    const languages = [
+        "Kaizen", "Kaizen", "Kaizen", // English emphasis
+        "改善", "改善", "改善",     // Japanese emphasis
+        "개선", "काइज़न", "Кайзен", "كايزن",
+        "Καϊζέν", "קאיזן", "ไคเซ็น"
+    ];
+
+    const languagesPool = [
+        "Kaizen", "Kaizen", "Kaizen", // English emphasis
+        "改善", "改善", "改善",     // Japanese emphasis
+        "개선", "काइज़न", "Кайзен", "كايزن",
+        "Καϊζέν", "קאיזן", "ไคเซ็น"
+    ];
+
+    const [displayWord, setDisplayWord] = useState(languagesPool[0]);
+    const [isExiting, setIsExiting] = useState(false);
 
     useEffect(() => {
         if (show) {
-            setLetters(titleText.split(""));
+            const interval = setInterval(() => {
+                setIsExiting(true);
+                setTimeout(() => {
+                    setDisplayWord((prev) => {
+                        const filtered = languagesPool.filter((w) => w !== prev);
+                        return filtered[Math.floor(Math.random() * filtered.length)];
+                    });
+                    setIsExiting(false);
+                }, 400); // Wait for exit animation
+            }, 1500);
+            return () => clearInterval(interval);
         }
     }, [show]);
+
+    const letters = displayWord.split("");
 
     return (
         <main
@@ -25,9 +51,9 @@ export default function Hero({ show }: { show: boolean }) {
                 <h1 className="title text-center">
                     {letters.map((ch, i) => (
                         <span
-                            key={i}
-                            className="title-letter"
-                            style={{ animationDelay: `${0.12 * i + 0.3}s` }}
+                            key={`${displayWord}-${i}`}
+                            className={`title-letter ${isExiting ? "out" : "in"}`}
+                            style={{ animationDelay: isExiting ? "0s" : `${0.07 * i}s` }}
                         >
                             {ch}
                         </span>
